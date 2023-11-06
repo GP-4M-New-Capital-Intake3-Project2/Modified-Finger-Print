@@ -30,6 +30,7 @@ SUBDIRS := \
 src/HAL/Finger-Print \
 src/HAL/LCD \
 src/MCAL/GPIO \
+src/MCAL/NVIC \
 src/MCAL/RCC \
 src/MCAL/STK \
 src/MCAL/UART \

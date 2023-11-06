@@ -10,6 +10,8 @@ u8 arr2[100] = {0};
 
 u8 arr3[100] = {0};
 
+
+
 u8 read_finger_1(void)          //for char_buffer1
 {
 	int i=0;
@@ -39,7 +41,6 @@ u8 read_finger_1(void)          //for char_buffer1
 			k=MUSART_u8ReceiveByteSynchNonBlocking(USART2);
 			if(ch==0x00||ch==0x21)
 			{
-				//_delay_ms(500);//1000
 				/*generate character file from image char file img2tz #1*/
 
 
@@ -69,7 +70,6 @@ u8 read_finger_1(void)          //for char_buffer1
 						if(ch==0x00||ch==0x21)
 						{
 
-							//_delay_ms(500);//1000
 							return 1;
 						}
 					}
@@ -140,17 +140,7 @@ u8 read_finger_2(void)          //for char_buffer2
 							//_delay_ms(500);//1000
 							return 1;
 						}
-						//						else if(ch==0x01||ch==0x21)//error when receiving package;
-						//							GPIO_voidSetPinValue(GPIO_PORTA , GPIO_PIN8 , GPIO_HIGH);
-						//						else if(ch==0x06)//fail to generate character file due to the over-disorderly fingerprint image;
-						//							GPIO_voidSetPinValue(GPIO_PORTA , GPIO_PIN9 , GPIO_HIGH);
-						//						else if(ch==0x07)//fail to generate character file due to lackness of character point or over-smallness of fingerprint image;
-						//							GPIO_voidSetPinValue(GPIO_PORTA , GPIO_PIN1 , GPIO_HIGH);
-						//						else if(ch==0x15)//fail to generate the image for the lackness of valid primary image;
-						//						{
-						//							GPIO_voidSetPinValue(GPIO_PORTA , GPIO_PIN4 , GPIO_HIGH);
-						//							//_delay_ms(500);//1000
-						//						}
+
 
 
 					}
@@ -194,25 +184,6 @@ void make_template(void)
 			ch=k;
 			k=MUSART_u8ReceiveByteSynchNonBlocking(USART2);
 			k=MUSART_u8ReceiveByteSynchNonBlocking(USART2);
-
-
-			if(ch==0x00||ch==0x21)
-			{
-				//GPIO_voidSetPinValue(GPIO_PORTA , GPIO_PIN0 , GPIO_HIGH);
-
-
-			}
-			else if (ch==0x01)//error when receiving package;
-			{
-
-				//				GPIO_voidSetPinValue(GPIO_PORTA , GPIO_PIN7 , GPIO_HIGH);
-
-			}
-			else if (ch==0x0a)
-			{
-
-				//				GPIO_voidSetPinValue(GPIO_PORTA , GPIO_PIN7 , GPIO_HIGH);;
-			}
 		}
 	}
 }
@@ -247,8 +218,7 @@ void store(unsigned char charBuf ,unsigned int ID)
 			{
 
 			}
-			//GPIO_voidSetPinValue(GPIO_PORTA , GPIO_PIN6 , GPIO_HIGH);
-			//_delay_ms(500);//1000
+
 
 		}
 	}
@@ -282,9 +252,6 @@ u8 check_finger(void)
 	MUSART_vTransmitByteSynch(USART2,0x00);
 	MUSART_vTransmitByteSynch(USART2,0x72);
 
-
-
-
 	for(i=0;i<10;i++)
 	{
 		k=MUSART_u8ReceiveByteSynchNonBlocking(USART2);
@@ -303,7 +270,6 @@ u8 check_finger(void)
 			if(ch==0x21||ch==0x00)////page no
 			{
 
-				// _delay_ms(500);
 				return 1;
 
 			}

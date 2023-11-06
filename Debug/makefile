@@ -16,6 +16,7 @@ RM := rm -rf
 -include src/MCAL/UART/subdir.mk
 -include src/MCAL/STK/subdir.mk
 -include src/MCAL/RCC/subdir.mk
+-include src/MCAL/NVIC/subdir.mk
 -include src/MCAL/GPIO/subdir.mk
 -include src/HAL/LCD/subdir.mk
 -include src/HAL/Finger-Print/subdir.mk

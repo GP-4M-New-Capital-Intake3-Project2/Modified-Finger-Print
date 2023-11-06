@@ -17,7 +17,7 @@
  */
 USART_InitType uart1_cfg =
 {
-		.BaudRate           = 115200,
+		.BaudRate           = 9600,
 		.DataWidth          = USART_MODE_8BIT,
 		.StopBits           = USART_STOP_BIT_1,
 		.Parity_Enable      = DISABLE,

@@ -20,6 +20,8 @@
 #define RCC_AHB1_DMA2           22
 
 #define RCC_EN_UART2           17
+#define RCC_EN_UART1            4
+
 
 #define RCC_EN_FMI  15
 /*     APB2    Peripherals          */
