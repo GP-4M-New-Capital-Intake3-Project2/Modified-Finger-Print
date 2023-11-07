@@ -32,6 +32,9 @@ extern u8 pageNo2;
 void read_udr(void)
 {
 	status = MUSART_u8ReadDataRegisterAsynch(USART1);
+	MUSART_voidClearFlags(USART1);
+	NVIC_voidDisablePeripheral(37);
+
 }
 int main(void){
 
@@ -126,7 +129,7 @@ int main(void){
 	MUSART1_vSetCallBack(read_udr);
 	NVIC_voidEnablePeripheral(37);
 
-	MUSART_RxIntSetStatus(USART1, ENABLE);
+	MUSART_RxIntSetStatus(USART1, DISABLE);
 	//data = MUSART_u8ReceiveByteSynchBlocking(USART1);
 	//////////////////////////////////////////////////////////////////////////
 	//LCD_Init();
@@ -135,13 +138,13 @@ int main(void){
 	while(1)
 	{
 
-
-		if(status == REGISTER_MODE)
+		u8 flag = MUSART_u8ReceiveByteAsynch_(USART1 , &status);
+		if(status == REGISTER_MODE && flag == 1)
 		{
-
 			MSTK_vSetBusyWait(DELAY);
 			while(read2_sucess != TRUE)
 			{
+				MSTK_vSetBusyWait(DELAY);
 				read1_sucess=read_finger_1();
 				if(read1_sucess == TRUE)
 				{
@@ -154,10 +157,12 @@ int main(void){
 						MSTK_vSetBusyWait(MODULE_DELAY);
 						store(1,id);
 						MUSART_vTransmitByteSynch(USART1,'S');
-						MSTK_vSetBusyWait(2000000);
 						id++;
 						read2_sucess = FALSE;
+						read1_sucess = FALSE;
+
 						status = IDLE_MODE;
+
 						break;
 					}
 					else
@@ -170,12 +175,14 @@ int main(void){
 				}
 				else
 				{
+					MSTK_vSetBusyWait(1000);
 
+					MUSART_vTransmitByteSynch(USART1,'G');
 				}
 			}
 
 		}
-		else if(status == SEARCH_MODE)
+		else if(status == SEARCH_MODE && flag == 1)
 		{
 
 			MSTK_vSetBusyWait(DELAY);
@@ -193,6 +200,9 @@ int main(void){
 						GPIO_voidSetPinValue(Engine.Port , Engine.Pin , GPIO_HIGH);
 						MSTK_vSetBusyWait(MODULE_DELAY);
 						status = IDLE_MODE;
+						NVIC_voidEnablePeripheral(37);
+						status = IDLE_MODE;
+
 						read1_sucess = FALSE;
 
 						break;
@@ -202,6 +212,9 @@ int main(void){
 
 						MUSART_vTransmitByteSynch(USART1,'F');
 						MSTK_vSetBusyWait(MODULE_DELAY);
+						//NVIC_voidEnablePeripheral(37);
+						status = IDLE_MODE;
+
 						read1_sucess = FALSE;
 						break;
 
@@ -211,6 +224,7 @@ int main(void){
 		}
 		else if(status == IDLE_MODE)
 		{
+			//NVIC_voidEnablePeripheral(37);
 
 		}
 

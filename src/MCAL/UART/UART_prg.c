@@ -87,6 +87,7 @@ u8 MUSART_u8ReceiveByteSynchNonBlocking(USART_MemMap_t *USARTx )
 	u32 L_u32TimeOut=0 ;
 	while(GET_BIT(USARTx->SR,MUSART_SR_RXNE_BIT)==0 && L_u32TimeOut< THRESHOLD_VALUE )
 	{
+
 		L_u32TimeOut++;
 	}
 	if(L_u32TimeOut== THRESHOLD_VALUE)  L_u8Data= 255;
