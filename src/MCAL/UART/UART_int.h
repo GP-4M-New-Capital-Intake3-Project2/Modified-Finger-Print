@@ -1,12 +1,9 @@
-/*
- * UART_init.h
- *
- *  Created on: Oct 10, 2022
- *      Author: Bahgat Mahmoud
- */
 
 #ifndef MCAL_UART_UART_INT_H_
 #define MCAL_UART_UART_INT_H_
+
+#define __UART2__
+#define __UART1__
 
 
 /**********************************************/
@@ -89,5 +86,11 @@ void MUSART1_vSetCallBack(void (*ptr) (void) );
 void MUSART2_vSetCallBack(void (*ptr) (void) );
 void MUSART6_vSetCallBack(void (*ptr) (void) );
 u8 MUSART_u8ReceiveByteAsynch_(USART_MemMap_t *USARTx , u8* ptr );
+
+
+
+
+
+
 
 #endif /* MCAL_UART_UART_INT_H_ */

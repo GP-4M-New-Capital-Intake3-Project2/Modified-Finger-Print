@@ -1,14 +1,10 @@
-/*
- * UART_cfg.c
- *
- *  Created on: Aug 30, 2023
- *      Author: admin
- */
+
 
 #include "UART_cfg.h"
 
 #include "../../LIB/BIT_MATH.h"
 #include "../../LIB/STD_TYPES.h"
+#include "../../MCAL/GPIO/GPIO_Interface.h"
 #include "UART_int.h"
 /*
  * BaudRate
@@ -48,5 +44,46 @@ USART_InitType uart6_cfg =
 		.Oversampling       = USART_OVER_SAMPLING_8
 
 };
+#ifdef __UART2__
+GPIO_PinConfig uart_pinTx =
+{
+		.Port = GPIO_PORTA,
+		.Pin  = GPIO_PIN2 ,
+		.Mode = GPIO_MODE_ALTERNATIVE,
+		.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,
+		.OutputType = GPIO_OUTPUT_PUSH_PULL,
+		.alt_func = 7,
+};
+GPIO_PinConfig uart_pinRx =
+{
+		.Port = GPIO_PORTA,
+		.Pin  = GPIO_PIN3 ,
+		.Mode = GPIO_MODE_ALTERNATIVE,
+		.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,
+		.PullState = GPIO_NO_PULL,
+		//.OutputType = GPIO_OUTPUT_PUSH_PULL,
+		.alt_func = 7,
+};
+#endif
+#ifdef __UART1__
+GPIO_PinConfig uart_pinTx1 =
+{
+		.Port = GPIO_PORTA,
+		.Pin  = GPIO_PIN9 ,
+		.Mode = GPIO_MODE_ALTERNATIVE,
+		.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,
+		.OutputType = GPIO_OUTPUT_PUSH_PULL,
+		.alt_func = 7,
+};
 
-
+GPIO_PinConfig uart_pinRx1 =
+{
+		.Port = GPIO_PORTA,
+		.Pin  = GPIO_PIN10 ,
+		.Mode = GPIO_MODE_ALTERNATIVE,
+		.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,
+		.PullState = GPIO_NO_PULL,
+		//.OutputType = GPIO_OUTPUT_PUSH_PULL,
+		.alt_func = 7,
+};
+#endif

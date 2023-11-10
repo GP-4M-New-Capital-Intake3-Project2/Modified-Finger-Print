@@ -1,3 +1,11 @@
+/************************************************************************
+ * Author           :Sabry Elsayed
+ * File description :main.c
+ * Date             :20/10/2023
+ * Target           :STM32F401
+ * Version          :v0.1
+ ************************************************************************/
+
 #include "LIB/STD_TYPES.h"
 #include "LIB/BIT_MATH.h"
 #include "MCAL/RCC/RCC_interface.h"
@@ -8,86 +16,47 @@
 #include "MCAL/NVIC/NVIC_interface.h"
 #include "HAL/Finger-Print/Finger-print.h"
 #include "HAL/LCD/LCD.h"
+/*************************************************************************/
+//To indicate program mode in REGISTER_MODE
+#define REGISTER_MODE   'R'
+//To indicate program mode in SEARCH_MODE
+#define SEARCH_MODE     'A'
+//To indicate program mode in IDLE_MODE
+#define IDLE_MODE       'I'
 
-
-
+/*************************used with uart init************************************/
 extern USART_InitType uart2_cfg ;
 extern USART_InitType uart1_cfg ;
 
-#define FALSE           0
-#define TRUE            1
-#define REGISTER_MODE   'R'
-#define SEARCH_MODE     'A'
-#define IDLE_MODE       'I'
-#define MODULE_DELAY    1000000
-#define DELAY           1000
-u8 read1_sucess=0;
-u8 read2_sucess=0;
+extern GPIO_PinConfig uart_pinTx ;
+extern GPIO_PinConfig uart_pinRx ;
+
+extern GPIO_PinConfig uart_pinTx1 ;
+extern GPIO_PinConfig uart_pinRx1 ;
+
+u8 Returen_RX;
+/*******************************************************************************/
+//To display user finger print that was already registered
+extern u8 id;
+//to store user finger print id that exist into finger print module flash memory
+u16 ID ;
+//To store program state
 u8 status = IDLE_MODE;
 
-u8 id = 20;
-extern u8 pageNo1;
-extern u8 pageNo2;
-
-void read_udr(void)
-{
-	status = MUSART_u8ReadDataRegisterAsynch(USART1);
-	MUSART_voidClearFlags(USART1);
-	NVIC_voidDisablePeripheral(37);
-
-}
 int main(void){
 
-
+	/****************************Enable RCC for UART1 , UART2 , PORTA , PORTB******************/
 	RCC_voidInit();
 	RCC_u8EnablePeripheralClock(RCC_APB1 ,RCC_EN_UART2 );
 	RCC_u8EnablePeripheralClock(RCC_APB2 ,RCC_EN_UART1 );
-
 	RCC_u8EnablePeripheralClock(RCC_AHB1 , RCC_AHB1_GPIOA);
 	RCC_u8EnablePeripheralClock(RCC_AHB1 , RCC_AHB1_GPIOB);
-
-	MSTK_vInit(); 	//HSI 16 MH / 8 = 2MH //TickTime = .5 us
 	RCC_u8EnablePeripheralClock(RCC_APB2 , RCC_APB2_SYSCFG);
+	/*******************************************************************************************/
+	//Initialize SYSTIC Timer
+	MSTK_vInit(); 	//HSI 16 MH / 8 = 2MH //TickTime = .5 us
 
-	GPIO_PinConfig uart_pinTx =
-	{
-			.Port = GPIO_PORTA,
-			.Pin  = GPIO_PIN2 ,
-			.Mode = GPIO_MODE_ALTERNATIVE,
-			.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,
-			.OutputType = GPIO_OUTPUT_PUSH_PULL,
-			.alt_func = 7,
-	};
-	GPIO_PinConfig uart_pinRx =
-	{
-			.Port = GPIO_PORTA,
-			.Pin  = GPIO_PIN3 ,
-			.Mode = GPIO_MODE_ALTERNATIVE,
-			.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,
-			.PullState = GPIO_NO_PULL,
-			//.OutputType = GPIO_OUTPUT_PUSH_PULL,
-			.alt_func = 7,
-	};
-
-	GPIO_PinConfig uart_pinTx1 =
-	{
-			.Port = GPIO_PORTA,
-			.Pin  = GPIO_PIN9 ,
-			.Mode = GPIO_MODE_ALTERNATIVE,
-			.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,
-			.OutputType = GPIO_OUTPUT_PUSH_PULL,
-			.alt_func = 7,
-	};
-	GPIO_PinConfig uart_pinRx1 =
-	{
-			.Port = GPIO_PORTA,
-			.Pin  = GPIO_PIN10 ,
-			.Mode = GPIO_MODE_ALTERNATIVE,
-			.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,
-			.PullState = GPIO_NO_PULL,
-			//.OutputType = GPIO_OUTPUT_PUSH_PULL,
-			.alt_func = 7,
-	};
+	//To configure engine pin
 	GPIO_PinConfig  Engine =
 	{
 			.Port = GPIO_PORTA,
@@ -97,134 +66,139 @@ int main(void){
 			.OutputType = GPIO_OUTPUT_PUSH_PULL
 	};
 
-	GPIO_PinConfig LCD[10] =
-	{
-			{.Port = GPIO_PORTB,.Pin  = GPIO_PIN5 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_LOW,.OutputType = GPIO_OUTPUT_PUSH_PULL},
-			{.Port = GPIO_PORTB,.Pin  = GPIO_PIN6 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_LOW,.OutputType = GPIO_OUTPUT_PUSH_PULL},
-			{.Port = GPIO_PORTB,.Pin  = GPIO_PIN7 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,.OutputType = GPIO_OUTPUT_PUSH_PULL},
-			{.Port = GPIO_PORTB,.Pin  = GPIO_PIN8 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,.OutputType = GPIO_OUTPUT_PUSH_PULL},
-			{.Port = GPIO_PORTB,.Pin  = GPIO_PIN9 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,.OutputType = GPIO_OUTPUT_PUSH_PULL},
-			{.Port = GPIO_PORTB,.Pin  = GPIO_PIN10 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,.OutputType = GPIO_OUTPUT_PUSH_PULL},
+	//To configure register_button pin
+	GPIO_PinConfig  register_button = {
+			.Port = GPIO_PORTB,
+			.Pin = GPIO_PIN0,
+			.Mode = GPIO_MODE_INPUT,
+			.OutputSpeed = GPIO_OUTPUT_SPEED_LOW,
+			.PullState  = GPIO_PULL_UP,
 
 	};
-	for(u8 i = 0 ; i < 6 ; i++)
-	{
-		GPIO_voidInit(&LCD[i]);
-	}
+
+	//To configure search_button pin
+	GPIO_PinConfig  search_button = {
+			.Port = GPIO_PORTB,
+			.Pin = GPIO_PIN1,
+			.Mode = GPIO_MODE_INPUT,
+			.OutputSpeed = GPIO_OUTPUT_SPEED_LOW,
+			.PullState  = GPIO_PULL_UP,
+
+	};
+
+/**********************To initialize GPIO PINS for UART1 , UART2 , ****************************/
+ /*********************Engine pin , register and search buttons pins *************************/
+
 	GPIO_voidInit(&uart_pinTx);
 	GPIO_voidInit(&uart_pinRx);
 	GPIO_voidInit(&uart_pinTx1);
 	GPIO_voidInit(&uart_pinRx1);
+	GPIO_voidInit(&register_button);
+	GPIO_voidInit(&search_button);
 	GPIO_voidInit(&Engine);
+/**********************************************************************************************/
 
-	///////////////////////////////////////////////////////////////////////
-	/*5-MUSART Initialization*/
-	uart2_cfg.BaudRate = 9600 ;
+
+	/*MUSART Initialization*/
 	MUSART_vInit(&uart2_cfg,USART2);
 	MUSART_vInit(&uart1_cfg,USART1);
 
-	/*6-Enable USARTx*/
+	/*Enable USARTx*/
 	MUSART_vEnable(USART2);
 	MUSART_vEnable(USART1);
-	MUSART1_vSetCallBack(read_udr);
-	NVIC_voidEnablePeripheral(37);
 
-	MUSART_RxIntSetStatus(USART1, DISABLE);
-	//data = MUSART_u8ReceiveByteSynchBlocking(USART1);
-	//////////////////////////////////////////////////////////////////////////
-	//LCD_Init();
+	/*Initialize LCD*/
+	LCD_Init();
+	LCD_GoTo(0,0);
+	LCD_WriteString((u8*)"Welcome");
 
 
 	while(1)
 	{
 
-		u8 flag = MUSART_u8ReceiveByteAsynch_(USART1 , &status);
-		if(status == REGISTER_MODE && flag == 1)
+		 Returen_RX = MUSART_u8ReceiveByteAsynch_(USART1 , &status);
+		/****************Check if register button is pressed*********************/
+		if(status == REGISTER_MODE && Returen_RX == 1)
 		{
-			MSTK_vSetBusyWait(DELAY);
-			while(read2_sucess != TRUE)
+			while(GPIO_u8GetPinValue(register_button.Port , register_button.Pin) ==0);
+			LCD_Clear();
+			LCD_GoTo(0,0);
+			LCD_WriteString((u8*)"Put your finger");
+			MSTK_vSetBusyWait(1000000);
+            /***********to make sure user is register successfully***************/
+			while(FP_Register() != OK)
 			{
-				MSTK_vSetBusyWait(DELAY);
-				read1_sucess=read_finger_1();
-				if(read1_sucess == TRUE)
-				{
+				MUSART_vTransmitByteSynch(USART1,'G');
+				LCD_GoTo(0,0);
+				LCD_WriteString((u8*)"Try again");
+				LCD_WriteString((u8*)"        ");
+				MSTK_vSetBusyWait(2000000);
+				LCD_WriteString((u8*)"Put your finger");
+				LCD_WriteString((u8*)"        ");
+				MSTK_vSetBusyWait(1000000);
 
-					MSTK_vSetBusyWait(MODULE_DELAY);
-					read2_sucess=read_finger_2();
-					if(read2_sucess == TRUE)
-					{
-						make_template();
-						MSTK_vSetBusyWait(MODULE_DELAY);
-						store(1,id);
-						MUSART_vTransmitByteSynch(USART1,'S');
-						id++;
-						read2_sucess = FALSE;
-						read1_sucess = FALSE;
 
-						status = IDLE_MODE;
-
-						break;
-					}
-					else
-					{
-
-						MSTK_vSetBusyWait(1000);
-						MUSART_vTransmitByteSynch(USART1,'G');
-
-					}
-				}
-				else
-				{
-					MSTK_vSetBusyWait(1000);
-
-					MUSART_vTransmitByteSynch(USART1,'G');
-				}
 			}
+			/**************Register process succeeded*****************************************/
+			MUSART_vTransmitByteSynch(USART1,'S');
+			LCD_GoTo(0,0);
+			LCD_WriteString((u8*)"Success            ");
+			LCD_GoTo(1 ,0);
+			LCD_WriteString((u8*)"Your Id is [");
+			LCD_WriteNumber(id);
+			LCD_WriteString((u8*)"]");
+			LCD_WriteString((u8*)"        ");
+			MSTK_vSetBusyWait(5000000);
+			status = IDLE_MODE;
 
 		}
-		else if(status == SEARCH_MODE && flag == 1)
+		/****************Check if search button is pressed*********************/
+		else if(status == SEARCH_MODE && Returen_RX == 1)
 		{
-
-			MSTK_vSetBusyWait(DELAY);
-			while(read1_sucess != TRUE)
+			while(GPIO_u8GetPinValue(search_button.Port , search_button.Pin) ==0);
+			LCD_Clear();
+			LCD_GoTo(0,0);
+			LCD_WriteString((u8*)"Put your finger");
+			MSTK_vSetBusyWait(1000000);
+			/****************Check if user finger print is exist in data base*********************/
+			if(FP_Search(&ID) == OK)
 			{
-				read1_sucess=read_finger_1();
-				if(read1_sucess == TRUE)
-				{
-					MSTK_vSetBusyWait(MODULE_DELAY);
-					make_template();
-					MSTK_vSetBusyWait(MODULE_DELAY);
-					if( check_finger() == TRUE)
-					{
-						MUSART_vTransmitByteSynch(USART1,'S');
-						GPIO_voidSetPinValue(Engine.Port , Engine.Pin , GPIO_HIGH);
-						MSTK_vSetBusyWait(MODULE_DELAY);
-						status = IDLE_MODE;
-						NVIC_voidEnablePeripheral(37);
-						status = IDLE_MODE;
+				/*************user finger print is exist********************************************/
+				LCD_GoTo(0,0);
+				LCD_WriteString((u8*)"Success           ");
+				LCD_GoTo(1 ,0);
+				LCD_WriteString((u8*)"Your Id is [");
+				LCD_WriteNumber(ID);
+				LCD_WriteString((u8*)"]");
+				LCD_WriteString((u8*)"        ");
+				GPIO_voidSetPinValue(Engine.Port , Engine.Pin ,GPIO_HIGH);
+				MSTK_vSetBusyWait(5000000);
+				MUSART_vTransmitByteSynch(USART1,'S');
 
-						read1_sucess = FALSE;
-
-						break;
-					}
-					else
-					{
-
-						MUSART_vTransmitByteSynch(USART1,'F');
-						MSTK_vSetBusyWait(MODULE_DELAY);
-						//NVIC_voidEnablePeripheral(37);
-						status = IDLE_MODE;
-
-						read1_sucess = FALSE;
-						break;
-
-					}
-				}
 			}
+			else
+			{
+			/*************user finger print is not exist********************************************/
+				LCD_GoTo(0,0);
+				LCD_WriteString((u8*)"Not Exist");
+				LCD_WriteString((u8*)"        ");
+				MSTK_vSetBusyWait(5000000);
+
+				MUSART_vTransmitByteSynch(USART1,'F');
+
+			}
+			status = IDLE_MODE;
+
 		}
+		/*************************to return to idle mode*******************************/
 		else if(status == IDLE_MODE)
 		{
-			//NVIC_voidEnablePeripheral(37);
+			//			LCD_GoTo(0,0);
+			//			LCD_WriteString("Welcome");
+			LCD_GoTo(0,0);
+			LCD_WriteString((u8*)"1:Register Mode   ");
+			LCD_GoTo(1,0);
+			LCD_WriteString((u8*)"2:Search Mode    ");
 
 		}
 

@@ -2,6 +2,7 @@
 /******************************************************************************
  *
  * Module: LCD
+
  *
  * Description: Source file of KEYPAD driver for AVR
  *
@@ -11,7 +12,16 @@
 #include "../../MCAL/GPIO/GPIO_Interface.h"
 #include "../../MCAL/STK/STK_int.h"
 #include "LCD.h"
+GPIO_PinConfig LCD[10] =
+{
+		{.Port = LCD_PORT,.Pin  = D4 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_LOW,.OutputType = GPIO_OUTPUT_PUSH_PULL},
+		{.Port = LCD_PORT,.Pin  = D5 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_LOW,.OutputType = GPIO_OUTPUT_PUSH_PULL},
+		{.Port = LCD_PORT,.Pin  = D6 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,.OutputType = GPIO_OUTPUT_PUSH_PULL},
+		{.Port = LCD_PORT,.Pin  = D7 ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,.OutputType = GPIO_OUTPUT_PUSH_PULL},
+		{.Port = LCD_PORT,.Pin  = RS ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,.OutputType = GPIO_OUTPUT_PUSH_PULL},
+		{.Port = LCD_PORT,.Pin  = EN ,.Mode = GPIO_MODE_OUTPUT,.OutputSpeed = GPIO_OUTPUT_SPEED_MEDIUM,.OutputType = GPIO_OUTPUT_PUSH_PULL},
 
+};
 /*****************************************************************************/
 /*checking if we use 8 bit with LCD*/
 #if LCD_MODE == _8_BIT
@@ -173,6 +183,10 @@ static void LCD_WriteData(u8 data)
 /*to initialize LCD */
 void LCD_Init(void)
 {
+	for(u8 i = 0 ; i < 6 ; i++)
+	{
+		GPIO_voidInit(&LCD[i]);
+	}
 	MSTK_vSetBusyWait(50000);
 	LCD_WriteCommand(0x02);
 	//2 line 5*7;

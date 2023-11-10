@@ -1,9 +1,4 @@
-/*
- * UART_prg.c
- *
- *  Created on: Oct 10, 2022
- *      Author: Bahgat Mahmoud
- */
+
 #include "../../LIB/BIT_MATH.h"
 #include "../../LIB/STD_TYPES.h"
 #include "UART_prv.h"

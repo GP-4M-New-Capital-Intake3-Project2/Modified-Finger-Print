@@ -2,6 +2,7 @@
 /******************************************************************************
  *
  * Module: LCD
+
  *
  * Description: header file of LCD driver for stm
  *
@@ -18,19 +19,19 @@
 /**********************pin configuration********/
 #define LCD_MODE      _4_BIT
 
-#define RS           GPIO_PIN9
-#define EN           GPIO_PIN10
-#define D7           GPIO_PIN8
-#define D6           GPIO_PIN7
-#define D5           GPIO_PIN6
-#define D4           GPIO_PIN5
+#define RS           GPIO_PIN8
+#define EN           GPIO_PIN11
+#define D7           GPIO_PIN7
+#define D6           GPIO_PIN6
+#define D5           GPIO_PIN5
+#define D4           GPIO_PIN4
 //#define D3           GPIO_PIN3
 //#define D2           GPIO_PIN2
 //#define D1           GPIO_PIN1
 //#define D0           GPIO_PIN0
 
 
-#define LCD_PORT    GPIO_PORTB
+#define LCD_PORT    GPIO_PORTA
 
 
 /****************************************************/
