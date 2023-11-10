@@ -35,6 +35,7 @@ extern GPIO_PinConfig uart_pinTx1 ;
 extern GPIO_PinConfig uart_pinRx1 ;
 
 u8 Returen_RX;
+u8 garbage;
 /*******************************************************************************/
 //To display user finger print that was already registered
 extern u8 id;
@@ -116,89 +117,57 @@ int main(void){
 	while(1)
 	{
 
+		//Check if there any received data over uart1 from GUI
 		 Returen_RX = MUSART_u8ReceiveByteAsynch_(USART1 , &status);
-		/****************Check if register button is pressed*********************/
+		/****************Check if UART1 received REGISTER_MODE*********************/
 		if(status == REGISTER_MODE && Returen_RX == 1)
 		{
-			while(GPIO_u8GetPinValue(register_button.Port , register_button.Pin) ==0);
-			LCD_Clear();
-			LCD_GoTo(0,0);
-			LCD_WriteString((u8*)"Put your finger");
-			MSTK_vSetBusyWait(1000000);
+
             /***********to make sure user is register successfully***************/
 			while(FP_Register() != OK)
 			{
+				//To send the gui by the current status ,G->ask user to try again
 				MUSART_vTransmitByteSynch(USART1,'G');
-				LCD_GoTo(0,0);
-				LCD_WriteString((u8*)"Try again");
-				LCD_WriteString((u8*)"        ");
-				MSTK_vSetBusyWait(2000000);
-				LCD_WriteString((u8*)"Put your finger");
-				LCD_WriteString((u8*)"        ");
-				MSTK_vSetBusyWait(1000000);
-
-
+				MUSART_u8ReceiveByteAsynch_(USART1 , &garbage);
 			}
-			/**************Register process succeeded*****************************************/
+			/**************Register process succeeded***************************/
+
+			//To send the gui by the current status ,S->inform user that registeration succeeded
 			MUSART_vTransmitByteSynch(USART1,'S');
-			LCD_GoTo(0,0);
-			LCD_WriteString((u8*)"Success            ");
-			LCD_GoTo(1 ,0);
-			LCD_WriteString((u8*)"Your Id is [");
-			LCD_WriteNumber(id);
-			LCD_WriteString((u8*)"]");
-			LCD_WriteString((u8*)"        ");
-			MSTK_vSetBusyWait(5000000);
+			MUSART_u8ReceiveByteAsynch_(USART1 , &garbage);
 			status = IDLE_MODE;
 
 		}
-		/****************Check if search button is pressed*********************/
+		/****************Check if UART1 received SEARCH_MODE*********************/
 		else if(status == SEARCH_MODE && Returen_RX == 1)
 		{
-			while(GPIO_u8GetPinValue(search_button.Port , search_button.Pin) ==0);
-			LCD_Clear();
-			LCD_GoTo(0,0);
-			LCD_WriteString((u8*)"Put your finger");
-			MSTK_vSetBusyWait(1000000);
-			/****************Check if user finger print is exist in data base*********************/
+
+			/****************Check if user finger print is exist in data base*****/
 			if(FP_Search(&ID) == OK)
 			{
-				/*************user finger print is exist********************************************/
-				LCD_GoTo(0,0);
-				LCD_WriteString((u8*)"Success           ");
-				LCD_GoTo(1 ,0);
-				LCD_WriteString((u8*)"Your Id is [");
-				LCD_WriteNumber(ID);
-				LCD_WriteString((u8*)"]");
-				LCD_WriteString((u8*)"        ");
+				/*************user finger print is exist**************************/
+
+				//To send the gui by the current status ,S->inform user that his finger print exist
 				GPIO_voidSetPinValue(Engine.Port , Engine.Pin ,GPIO_HIGH);
-				MSTK_vSetBusyWait(5000000);
 				MUSART_vTransmitByteSynch(USART1,'S');
+				MUSART_u8ReceiveByteAsynch_(USART1 , &garbage);
 
 			}
 			else
 			{
-			/*************user finger print is not exist********************************************/
-				LCD_GoTo(0,0);
-				LCD_WriteString((u8*)"Not Exist");
-				LCD_WriteString((u8*)"        ");
-				MSTK_vSetBusyWait(5000000);
-
+			/*************user finger print is not exist**************************/
+				//To send the gui by the current status ,S->inform user that his finger print is not exist
 				MUSART_vTransmitByteSynch(USART1,'F');
+				MUSART_u8ReceiveByteAsynch_(USART1 , &garbage);
 
 			}
 			status = IDLE_MODE;
 
 		}
-		/*************************to return to idle mode*******************************/
+		/*************************to return to idle mode*************************/
 		else if(status == IDLE_MODE)
 		{
-			//			LCD_GoTo(0,0);
-			//			LCD_WriteString("Welcome");
-			LCD_GoTo(0,0);
-			LCD_WriteString((u8*)"1:Register Mode   ");
-			LCD_GoTo(1,0);
-			LCD_WriteString((u8*)"2:Search Mode    ");
+
 
 		}
 

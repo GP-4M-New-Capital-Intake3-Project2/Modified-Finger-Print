@@ -14,13 +14,14 @@
 #include "Finger-print.h"
 
 
-/*********************************Finger Print Packets*******************************************************/
+/*********************************Finger Print UART Packets*******************************************************/
 static const u8 ReadFingerFrame[12]    = {0xEF ,0x01 ,0xFF ,0xFF ,0XFF ,0XFF ,0x01 ,0x00 ,0x03 ,0x01 ,0x00 ,0x05};
 static const u8 StoreBuffer_1Frame[13] = {0xEF ,0x01 ,0xFF ,0xFF ,0XFF ,0XFF ,0x01 ,0x00 ,0x04 ,0x02 ,0x01 ,0x00 ,0x08};
 static const u8 StoreBuffer_2Frame[13] = {0xEF ,0x01 ,0xFF ,0xFF ,0XFF ,0XFF ,0x01 ,0x00 ,0x04 ,0x02 ,0x02 ,0x00 ,0x09};
 static const u8 MakeTamplateFrame[12]  = {0xEF ,0x01 ,0xFF ,0xFF ,0XFF ,0XFF ,0x01 ,0x00 ,0x03 ,0x05 ,0x00 ,0x09};
 static const u8 StoreFrame [10]        = {0xEF ,0x01 ,0xFF ,0xFF ,0XFF ,0XFF ,0x01 ,0x00 ,0x06 ,0x06  };
-static const u8 CheckFrame[17]         = {0xEF ,0x01 ,0xFF ,0xFF ,0XFF ,0XFF ,0x01 ,0x00 ,0x08 ,0x04 ,0x01 ,0x00 ,0x0A ,0x00 ,0x5A ,0x00 ,0x72 };
+static const u8 CheckFrame[17]         = {0xEF ,0x01 ,0xFF ,0xFF ,0XFF ,0XFF ,0x01 ,0x00 ,0x08
+		                                 ,0x04 ,0x01 ,0x00 ,0x0A ,0x00 ,0x5A ,0x00 ,0x72 };
 /*************************************************************************************************************/
  u8 id = 20;
 /*************************************************************************
@@ -164,7 +165,7 @@ static u8 FP_ConfirmFinger(void)          //for char_buffer2
 
 }
 /*************************************************************************
- * @name         FP_ConfirmFinger
+ * @name         FP_MakeTemplate
  * @brief        This function is used to make a template of user finger
  *               to process data
  * @parm         None

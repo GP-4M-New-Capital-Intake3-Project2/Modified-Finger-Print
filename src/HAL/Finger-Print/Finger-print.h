@@ -19,7 +19,11 @@
 #define MODULE_DELAY    1000000
 #define DELAY           1000
 
-
+//To register user finger print
 u8 FP_Register(void)        ;
+
+//To search about user finger print into finger print module flash memory
 u8 FP_Search (u16 *Id)      ;
+
+
 #endif /* HAL_FINGER_PRINT_FINGER_PRINT_H_ */
